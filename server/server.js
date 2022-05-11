@@ -3,13 +3,15 @@ const cors = require('cors');
 require('dotenv').config()
 const db = require('../server/db/db-connection.js'); 
 const path = require('path');
-
-
+const fetch = require('node-fetch')
 const app = express();
+const PORT = 4003;
 
-const PORT = 4002;
 app.use(cors());
 app.use(express.json());
+
+client_id = process.env.CLIENTID
+client_secret = process.env.SECRET
 
 //creates an endpoint for the route /api
 app.get('/', (req, res) => {
@@ -17,69 +19,41 @@ app.get('/', (req, res) => {
 });
 
 //create the get request
-app.get('/blogposts', cors(), async (req, res) => {
+app.get('/genres', cors(), async (req, res) => {
    
     try{
-        const { rows: posts } = await db.query('SELECT * FROM posts');
-        res.send(posts);
+        const { rows: genres } = await db.query('SELECT * FROM genres');
+        res.json(genres);
     } catch (e){
         return res.status(400).json({e});
     }
 });
 
-app.delete('/blogposts/:id', cors(), async (req, res) =>{
-    const postId = req.params.id;
-    //console.log(req.params);
-    await db.query('DELETE FROM posts WHERE id=$1', [postId]);
-    res.status(200).end();
+const access_token =
+  "BQD8G02twBmnuYCDgWKHJEh7ExKEs1YrUCDRySmhFxpYwAi3lFvf_VJb-H6x8L1rZYRWAxwseCC0q1abVC7bPQloW1HYpYzOkeQ6Eej4bu8zap8PauANGa7r3VrP1If1nhLycH4DIH9VqVLHqn9XwzS9rzaxyiap7gw";
+let artistid;
 
-});
+app.get("/game", async (req, res) => {
+  genre = req.query.genre;
+  console.log("backend line 315. Genre: " + genre);
+  fetch(`https://api.spotify.com/v1/search?q=genre%3A${genre}&type=artist&market=ES&limit=10&offset=5`, {
+    method: "get",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + access_token,
+    },
+  }).then((response) => {
+    console.log(
+      response.json().then((data) => {
+        artistid = data.artists.items[0]['id']
+        {console.log("Artist ID:" + artistid);}
+        res.json(data)
+      })
+      )
+})
+})
 
-//create the POST request
-app.post('/blogposts', cors(), async (req, res) => {
-    const newPost = { date: req.body.date, title: req.body.title, content: req.body.content,image: req.body.image, alt: req.body.alt  }
-    console.log([newPost.date, newPost.title, newPost.content, newPost.image, newPost.alt]);
-    const result = await db.query(
-        'INSERT INTO posts(date, title, content, image, alt) VALUES($1, $2, $3, $4, $5) RETURNING *',
-        [newPost.date, newPost.title, newPost.content,  newPost.image, newPost.alt]
-    );
-    console.log(result.rows[0]);
-    res.json(result.rows[0]);
-});
-
-app.put('/blogposts/:postId', cors(), async (req, res) =>{
-    const postsId = req.params.postId;
-    const updatePost = { id: req.body.id, date: req.body.date, title: req.body.title, content: req.body.content,image: req.body.image, alt: req.body.alt   }
-    //console.log(req.params);
-    // UPDATE students SET lastname = 'TestMarch' WHERE id = 1;
-    console.log(postsId);
-    console.log(updatePost);
-    const query = `UPDATE posts SET title=$1, content=$2, date=$3, image=$4, alt=$5 WHERE id = ${postsId} RETURNING *`;
-    console.log(query);
-    const values = [updatePost.title, updatePost.content,updatePost.date,updatePost.image, updatePost.alt];
-    try{
-        const updated = await db.query(query, values);
-        console.log(updated.rows[0]);
-        res.send(updated.rows[0]);
-    } catch (e){
-        console.log(e);
-        return res.status(400).json({e});
-    }
-});
-
-    app.get('/blogposts/:blogId', cors(), async (req, res) => {
-        const blogId = req.params.blogId;
-        const getId = await db.query(`SELECT * FROM posts WHERE id=${blogId}`);
-        console.log("getId", getId.rows[0])
-        res.send(getId.rows[0])
-    })
-
-app.get('/form',function (req, res) {
-    res.sendFile(path.join(__dirname, 'about.html'));
-    // res.send('hey im working');
-    //res.send('about.html');
-    //res.render('about.html');
-});
 
 // console.log that your server is up and running
 app.listen(PORT, () => {

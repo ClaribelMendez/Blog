@@ -123,10 +123,14 @@ overflow: hidden;
     border-radius: dotted
   } */
 
-body {
-  background-color: #eaeff1;
-  font-family: "Raleway", sans-serif;
-}
+  body {
+    background-image: url("https://images.unsplash.com/photo-1557682233-43e671455dfa?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=564&q=80");
+    background-size: cover;
+    background-repeat: no-repeat;
+    /* height: 400px; 
+  width: 400px; */
+    /* margin-left: 50%; */
+  }
 ul li {
   display: inline-block
 }
