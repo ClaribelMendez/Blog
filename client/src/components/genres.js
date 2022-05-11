@@ -55,6 +55,7 @@ function Genres() {
       ))}
     </select>
 
+    <a href='http://localhost:8888/login'>LOGIN WITH SPOTIFY</a>
 
     </div>
   );
